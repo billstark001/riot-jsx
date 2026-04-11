@@ -1,0 +1,40 @@
+{
+  "name": "@riot-jsx/redux",
+  "version": "0.1.0",
+  "description": "Redux store connector for riot-jsx — subscribe, mapState, mapDispatch",
+  "type": "module",
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "rollup -c rollup.config.ts --configPlugin @rollup/plugin-typescript",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@riot-jsx/base": "workspace:*"
+  },
+  "peerDependencies": {
+    "redux": ">=4.0.0"
+  },
+  "devDependencies": {
+    "@riot-jsx/base": "workspace:*",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "jsdom": "^24.0.0",
+    "redux": "^5.0.0",
+    "rollup": "^4.0.0",
+    "rollup-plugin-dts": "^6.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

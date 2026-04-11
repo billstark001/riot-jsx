@@ -1,0 +1,19 @@
+{
+  "name": "riot-jsx",
+  "private": true,
+  "description": "Monorepo for riot-jsx: bridge Riot.js components with JSX renderers (Preact/React) and Redux",
+  "scripts": {
+    "build": "pnpm -r --filter='!example' build",
+    "test": "pnpm -r --filter='!example' test",
+    "test:run": "pnpm -r --filter='!example' test:run",
+    "clean": "pnpm -r clean",
+    "typecheck": "pnpm -r typecheck",
+    "dev:example": "pnpm --filter example dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "tslib": "^2.8.1"
+  }
+}

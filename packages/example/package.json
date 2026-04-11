@@ -1,0 +1,27 @@
+{
+  "name": "example",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Demo app: Riot components and Preact components mutually nested, connected to Redux",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@riot-jsx/base": "workspace:*",
+    "@riot-jsx/preact": "workspace:*",
+    "@riot-jsx/redux": "workspace:*",
+    "preact": "^10.22.0",
+    "redux": "^5.0.0",
+    "riot": "^9.0.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.8.0",
+    "@riotjs/compiler": "^10.0.1",
+    "rollup-plugin-riot": "^10.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^5.0.0"
+  }
+}

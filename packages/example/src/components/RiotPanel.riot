@@ -1,0 +1,60 @@
+<riot-panel>
+  <!--
+    RiotPanel — a standard Riot component that embeds a preact-counter child.
+
+    This demonstrates the Riot → Preact direction:
+      A normal .riot component uses <preact-counter />, which is actually a
+      Preact component wrapped by @riot-jsx/redux and registered with Riot.
+  -->
+
+  <div class="riot-panel">
+    <p class="label">
+      Riot Panel <span class="badge">Riot</span>
+    </p>
+    <p class="description">
+      The counter below is a <strong>Preact component</strong> wrapped as a Riot
+      component via <code>@riot-jsx/redux</code>. It reads and writes the same
+      Redux store as the direct Preact counter above.
+    </p>
+
+    <!-- Riot will resolve this tag to the registered PreactCounterWrapper -->
+    <preact-counter />
+  </div>
+
+  <style>
+    .riot-panel {
+      border: 2px solid #0284c7;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      background: #f0f9ff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #0c4a6e;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      background: #0284c7;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+
+    .description {
+      color: #334155;
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+  </style>
+</riot-panel>
