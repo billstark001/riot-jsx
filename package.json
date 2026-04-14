@@ -9,7 +9,7 @@
     "clean": "pnpm -r clean",
     "typecheck": "pnpm -r typecheck",
     "dev:example": "pnpm --filter example dev",
-    "publish": "pnpm -r --filter='!example' publish --access public --no-git-checks"
+    "publish-all": "pnpm -r --filter='!example' publish --access public --no-git-checks"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
