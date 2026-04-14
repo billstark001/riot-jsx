@@ -28,7 +28,7 @@ export interface ReduxConnectOptions<
   OwnProps extends Record<string, unknown>,
   StateProps extends Record<string, unknown>,
   DispatchProps extends Record<string, unknown>,
-> extends Omit<ConnectOptions<OwnProps & StateProps & DispatchProps>, 'propsResolver'> {
+> extends Omit<ConnectOptions, 'propsResolver'> {
   /**
    * Returns the Redux store instance.
    * Passing a getter (rather than the store directly) makes the connector
@@ -92,11 +92,15 @@ export interface ReduxConnectOptions<
  */
 export function connectRedux<
   S,
-  OwnProps extends Record<string, unknown> = Record<string, unknown>,
-  StateProps extends Record<string, unknown> = Record<string, unknown>,
-  DispatchProps extends Record<string, unknown> = Record<string, unknown>,
+  OwnProps extends Record<string, unknown> = Record<string, never>,
+  StateProps extends Record<string, unknown> = Record<string, never>,
+  DispatchProps extends Record<string, unknown> = Record<string, never>,
 >(
-  Component: ComponentType<OwnProps & StateProps & DispatchProps>,
+  // Component accepts any props at this level; TypeScript infers StateProps /
+  // DispatchProps from the mapping functions and validates them at runtime.
+  // Stronger static validation is available by supplying explicit type params.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Component: ComponentType<any>,
   options: ReduxConnectOptions<S, OwnProps, StateProps, DispatchProps>,
 ): RiotComponentWrapper {
   const { getStore, mapStateToProps, mapDispatchToProps, ...baseOptions } = options;

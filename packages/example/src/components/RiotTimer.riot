@@ -1,0 +1,156 @@
+<riot-timer>
+  <!--
+    RiotTimer — a pure Riot component without any JSX bridge.
+
+    Demonstrates Riot-native features:
+      • onMounted / onUnmounted lifecycle hooks
+      • this.update() for reactive re-renders
+      • setInterval managed inside lifecycle hooks
+
+    It is embedded into the Preact tree via <RiotMount> in App.tsx,
+    and riotProps.seconds is incremented by Preact on a slider.
+  -->
+
+  <div class="riot-timer">
+    <p class="label">
+      Countdown Timer <span class="badge">Riot</span>
+    </p>
+
+    <p class="description">
+      A <strong>pure Riot component</strong> — no JSX inside.
+      It uses <code>onMounted</code> / <code>onUnmounted</code> + <code>setInterval</code>
+      to tick and <code>this.update()</code> to re-render.
+      The start value is driven by a Preact slider via <code>riotProps</code>.
+    </p>
+
+    <div class="display">
+      <span class="time">{ state.remaining }</span>
+      <span class="unit">s</span>
+    </div>
+
+    <div class="actions">
+      <button onclick="{ restart }">Restart ({ props.seconds }s)</button>
+    </div>
+
+    <p if="{ state.remaining === 0 }" class="done">Time's up!</p>
+  </div>
+
+  <style>
+    .riot-timer {
+      border: 2px solid #059669;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      background: #ecfdf5;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #064e3b;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      background: #059669;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+
+    .description {
+      color: #334155;
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .display {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .time {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #059669;
+    }
+
+    .unit {
+      font-size: 1.25rem;
+      color: #6b7280;
+    }
+
+    .actions button {
+      padding: 6px 14px;
+      border: 1px solid #059669;
+      border-radius: 4px;
+      background: transparent;
+      color: #059669;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+
+    .actions button:hover {
+      background: #d1fae5;
+    }
+
+    .done {
+      font-weight: 600;
+      color: #b45309;
+      margin: 0;
+    }
+  </style>
+
+  <script>
+    export default {
+      _timer: null,
+
+      onMounted() {
+        this._startCountdown();
+      },
+
+      onUpdated() {
+        // When Preact changes props.seconds, restart the countdown
+        if (this.state.lastSeconds !== this.props.seconds) {
+          this._startCountdown();
+        }
+      },
+
+      onUnmounted() {
+        this._clearTimer();
+      },
+
+      restart() {
+        this._startCountdown();
+      },
+
+      _clearTimer() {
+        if (this._timer !== null) {
+          clearInterval(this._timer);
+          this._timer = null;
+        }
+      },
+
+      _startCountdown() {
+        this._clearTimer();
+        const seconds = Number(this.props.seconds ?? 10);
+        this.update({ remaining: seconds, lastSeconds: seconds });
+        if (seconds <= 0) return;
+
+        this._timer = setInterval(() => {
+          const next = this.state.remaining - 1;
+          this.update({ remaining: next });
+          if (next <= 0) this._clearTimer();
+        }, 1000);
+      },
+    };
+  </script>
+</riot-timer>

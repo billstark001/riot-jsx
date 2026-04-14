@@ -34,6 +34,25 @@ pnpm add @riot-jsx/base @riot-jsx/react riot react react-dom
 pnpm add @riot-jsx/base @riot-jsx/preact @riot-jsx/redux riot preact redux
 ```
 
+## Documentation
+
+| Document | Description |
+|---|---|
+| [Getting Started](docs/getting-started.md) | Installation, quick-start recipes, requirements |
+| [API — @riot-jsx/base](docs/api-base.md) | `connectRenderer`, `RendererAdapter`, `scopeCSS`, types |
+| [API — @riot-jsx/preact](docs/api-preact.md) | `createPreactRenderer`, `<RiotMount>` |
+| [API — @riot-jsx/redux](docs/api-redux.md) | `connectRedux`, `mapStateToProps`, `mapDispatchToProps` |
+| [Advanced Patterns](docs/advanced.md) | Local state, own-props, reactive riotProps, CSS scoping, SSR notes |
+
+## Live demo
+
+The [example app](packages/example) is deployed to GitHub Pages and shows four scenarios:
+
+- **A** — Preact component connected to Redux (direct, no Riot)
+- **B** — Riot → Preact nesting, shared Redux store
+- **C** — Riot → Preact nesting, local Preact state (no Redux)
+- **D** — Preact → Riot, reactive `riotProps`, Riot lifecycle hooks
+
 ## Development
 
 ```bash

@@ -2,29 +2,31 @@
  * App — root Preact component for the riot-jsx demo.
  *
  * Layout:
- *   ┌────────────────────────────────────────────────────┐
- *   │  h1: riot-jsx Bridge Demo                          │
- *   ├────────────────────────────────────────────────────┤
- *   │  Section A — direct Preact counter (Redux)         │
- *   │    <PreactCounter />  (rendered directly by Preact)│
- *   ├────────────────────────────────────────────────────┤
- *   │  Section B — Riot component via <RiotMount>        │
- *   │    <RiotMount component={RiotPanel} />             │
- *   │      └── RiotPanel.riot                            │
- *   │            └── <preact-counter />   (Riot wrapper) │
- *   │                  └── PreactCounter (same Redux)    │
- *   └────────────────────────────────────────────────────┘
+ *   A. Preact → Redux (direct)
+ *      Plain PreactCounter rendered directly, connected to the Redux store.
  *
- * Both counters share a single Redux store, so editing one immediately
- * reflects in the other.
+ *   B. Preact → Riot → Preact (nested, Redux)
+ *      RiotMount embeds RiotPanel.riot, which hosts <preact-counter />.
+ *      Both sections share the same Redux store — editing one updates the other.
+ *
+ *   C. Riot → Preact, no Redux (pure local state)
+ *      RiotPanel2.riot hosts <color-picker />, a Preact component that manages
+ *      its own state with useState — no store involved.
+ *
+ *   D. Preact → Riot (lifecycle & reactive riotProps)
+ *      RiotMount embeds RiotTimer.riot, a countdown timer written in pure Riot.
+ *      The initial seconds are controlled by a Preact <input type="range">,
+ *      demonstrating how Preact drives a Riot component through riotProps.
  */
 import { RiotMount } from '@riot-jsx/preact';
 import { PreactCounter } from './components/PreactCounter.js';
 import { store } from './store.js';
 import type { RootState } from './store.js';
-import { useReducer, useEffect } from 'preact/hooks';
+import { useReducer, useEffect, useState, useMemo } from 'preact/hooks';
 
 import RiotPanelWrapper from './components/RiotPanel.riot';
+import RiotPanel2Wrapper from './components/RiotPanel2.riot';
+import RiotTimerWrapper from './components/RiotTimer.riot';
 
 // ---------------------------------------------------------------------------
 // Mini hook: subscribe to a Redux store slice
@@ -47,19 +49,24 @@ function useSelector<T>(selector: (state: RootState) => T): T {
 export function App() {
   const count = useSelector((s) => s.counter.value);
 
+  // Section D: slider controls how many seconds the Riot timer starts with
+  const [timerSeconds, setTimerSeconds] = useState(10);
+  const timerProps = useMemo(() => ({ seconds: timerSeconds }), [timerSeconds]);
+
   return (
     <div class="app">
       <h1>riot-jsx Bridge Demo</h1>
       <p class="intro">
-        This page demonstrates <strong>@riot-jsx</strong>: bidirectional nesting
-        of Riot and Preact components sharing a single Redux store.
+        Demonstrates <strong>@riot-jsx</strong>: bidirectional nesting of Riot
+        and Preact components, with and without Redux.
       </p>
 
-      {/* ── Section A: Direct Preact counter ── */}
+      {/* ── Section A: Direct Preact counter (Redux) ── */}
       <section>
         <h2>A. Preact → Redux (direct)</h2>
         <p class="desc">
-          A plain Preact component rendered directly — no Riot involved.
+          A plain Preact component rendered directly inside the Preact tree.
+          Its state lives in a shared Redux store.
         </p>
         <PreactCounter
           count={count}
@@ -69,20 +76,59 @@ export function App() {
         />
       </section>
 
-      {/* ── Section B: Riot panel via RiotMount ── */}
+      {/* ── Section B: Riot panel → Preact counter (Redux, nested) ── */}
       <section>
-        <h2>B. Preact → Riot → Preact (nested)</h2>
+        <h2>B. Preact → Riot → Preact (nested, shared Redux)</h2>
         <p class="desc">
-          A <code>&lt;RiotMount&gt;</code> embeds a genuine Riot component
-          (<code>RiotPanel.riot</code>), which itself contains a
-          <code>&lt;preact-counter&gt;</code> — a Preact component registered as
-          a Riot tag via <code>@riot-jsx/redux</code>.
+          A <code>&lt;RiotMount&gt;</code> embeds <code>RiotPanel.riot</code>,
+          which itself contains <code>&lt;preact-counter /&gt;</code> — a Preact
+          component registered as a Riot tag via <code>@riot-jsx/redux</code>.
+          Both counters share the same Redux store; editing one updates the other.
         </p>
         <RiotMount component={RiotPanelWrapper} />
       </section>
 
+      {/* ── Section C: Riot → Preact (no Redux, local state) ── */}
+      <section>
+        <h2>C. Riot → Preact (no Redux, local Preact state)</h2>
+        <p class="desc">
+          <code>RiotPanel2.riot</code> hosts <code>&lt;color-picker /&gt;</code>,
+          a Preact component wrapped with <code>connectRenderer</code> (no Redux).
+          The component manages its own state with <code>useState</code> — no
+          store involved.
+        </p>
+        <RiotMount component={RiotPanel2Wrapper} />
+      </section>
+
+      {/* ── Section D: Riot lifecycle + reactive riotProps ── */}
+      <section>
+        <h2>D. Preact → Riot (lifecycle hooks & reactive riotProps)</h2>
+        <p class="desc">
+          <code>RiotTimer.riot</code> is a pure Riot component: it uses{' '}
+          <code>onMounted</code> / <code>onUnmounted</code> lifecycle hooks and{' '}
+          <code>setInterval</code> to count down. The starting value is driven
+          by a Preact slider — a live example of Preact passing reactive props
+          into an embedded Riot component via <code>riotProps</code>.
+        </p>
+        <div class="slider-row">
+          <label for="seconds-slider">Start seconds: <strong>{timerSeconds}</strong></label>
+          <input
+            id="seconds-slider"
+            type="range"
+            min={3}
+            max={30}
+            value={timerSeconds}
+            onInput={(e) => setTimerSeconds(Number((e.target as HTMLInputElement).value))}
+          />
+        </div>
+        <RiotMount component={RiotTimerWrapper} riotProps={timerProps} />
+      </section>
+
       <footer>
-        <p>Both counters share the same Redux state. Edit one → the other updates instantly.</p>
+        <p>
+          Sections A &amp; B share Redux state — edit one, the other updates instantly.
+          Sections C &amp; D are fully independent.
+        </p>
       </footer>
     </div>
   );

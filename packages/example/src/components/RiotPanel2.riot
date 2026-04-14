@@ -1,0 +1,60 @@
+<riot-panel2>
+  <!--
+    RiotPanel2 — a Riot component that hosts a Preact component without Redux.
+
+    This demonstrates that connectRenderer works without a store:
+      A normal .riot component uses <color-picker />, which is a Preact
+      component wrapped by @riot-jsx/base (no @riot-jsx/redux).
+      The Preact component manages its own state with useState.
+  -->
+
+  <div class="riot-panel2">
+    <p class="label">
+      Riot Panel 2 <span class="badge">Riot</span>
+    </p>
+    <p class="description">
+      The color picker below is a <strong>Preact component</strong> wrapped as a
+      Riot component via <code>connectRenderer</code> — no Redux at all.
+      State is managed locally inside the Preact component with <code>useState</code>.
+    </p>
+
+    <color-picker />
+  </div>
+
+  <style>
+    .riot-panel2 {
+      border: 2px solid #d97706;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      background: #fffbeb;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #78350f;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      background: #d97706;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+
+    .description {
+      color: #334155;
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+  </style>
+</riot-panel2>

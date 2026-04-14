@@ -9,3 +9,16 @@ declare module '*.riot' {
   const component: (import('@riot-jsx/base').RiotComponentWrapper);
   export default component;
 }
+
+/**
+ * Type bridge: allow Riot's `register` API to accept wrappers produced by
+ * `@riot-jsx/base` without explicit casts in application code.
+ */
+declare module 'riot' {
+  export function register(
+    componentName: string,
+    wrapper: import('@riot-jsx/base').RiotComponentWrapper,
+  ): RegisteredComponentsMap;
+}
+
+declare module 'rollup-plugin-riot';
