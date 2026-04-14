@@ -44,7 +44,7 @@ jobs:
         run: pnpm build
 
       - name: Publish packages
-        run: pnpm -r --filter='!example' publish --access public --no-git-checks
+        run: pnpm publish-all
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
