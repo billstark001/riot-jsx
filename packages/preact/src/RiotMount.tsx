@@ -2,17 +2,8 @@ import { h } from 'preact';
 import { useRef, useEffect } from 'preact/hooks';
 import type { JSX, Ref } from 'preact';
 import * as riotRuntime from 'riot';
-import type { RiotComponentWrapper } from '@riot-jsx/base';
-
-// ---------------------------------------------------------------------------
-// Minimal local typings for a Riot instance — avoids a hard compile-time
-// dependency on the `riot` package itself.
-// ---------------------------------------------------------------------------
-
-interface RiotInstance {
-  update(props?: Record<string, unknown>): void;
-  unmount(keepRootElement?: boolean): void;
-}
+import type { RiotComponentWrapper, RiotInstance } from '@riot-jsx/base';
+import { updateRiotInstance } from '@riot-jsx/base';
 
 interface RiotModule {
   component(
@@ -105,7 +96,7 @@ export function RiotMount({
   // Propagate riotProps on every Preact re-render
   useEffect(() => {
     if (instanceRef.current) {
-      instanceRef.current.update(riotProps);
+      updateRiotInstance(instanceRef.current, riotProps, true);
     }
   });
 

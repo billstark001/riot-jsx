@@ -17,9 +17,42 @@
       Riot component via <code>connectRenderer</code> — no Redux at all.
       State is managed locally inside the Preact component with <code>useState</code>.
     </p>
+    <p>
+      Selected color from Preact: <span style="color: { state.colorCss }">{ state.color }</span>
+    </p>
 
-    <color-picker />
+    <color-picker color={ state.color } on-color-selected={onColorSelected} />
   </div>
+
+  <script>
+    import ColorPicker from '../connectors/ColorPicker.connector';
+    export default {
+
+      state: {
+        color: 'N/A',
+        colorCss: 'inherit',
+      },
+
+      components: {
+        ColorPicker,
+      },
+
+      onMounted() {
+        this.state = {
+          color: 'N/A',
+          colorCss: 'inherit',
+        };
+      },
+
+      onColorSelected(color) {
+        if (!color) return;
+        this.state.color = color.label;
+        this.state.colorCss = color.value || 'inherit';
+        this.update();
+      },
+
+    }
+  </script>
 
   <style>
     .riot-panel2 {

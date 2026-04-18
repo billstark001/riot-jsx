@@ -117,13 +117,6 @@
         this._startCountdown();
       },
 
-      onUpdated() {
-        // When Preact changes props.seconds, restart the countdown
-        if (this.state.lastSeconds !== this.props.seconds) {
-          this._startCountdown();
-        }
-      },
-
       onUnmounted() {
         this._clearTimer();
       },

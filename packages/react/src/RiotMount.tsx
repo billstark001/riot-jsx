@@ -1,16 +1,12 @@
 import { createElement, useRef, useEffect } from 'react';
 import type { JSX } from 'react';
 import * as riotRuntime from 'riot';
-import type { RiotComponentWrapper } from '@riot-jsx/base';
+import type { RiotComponentWrapper, RiotInstance } from '@riot-jsx/base';
+import { updateRiotInstance } from '@riot-jsx/base';
 
 // ---------------------------------------------------------------------------
 // Minimal local typings for Riot instances
 // ---------------------------------------------------------------------------
-
-interface RiotInstance {
-  update(props?: Record<string, unknown>): void;
-  unmount(keepRootElement?: boolean): void;
-}
 
 interface RiotModule {
   component(
@@ -94,7 +90,7 @@ export function RiotMount({
 
   useEffect(() => {
     if (instanceRef.current) {
-      instanceRef.current.update(riotProps);
+      updateRiotInstance(instanceRef.current, riotProps, true);
     }
   });
 

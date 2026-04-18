@@ -95,6 +95,16 @@ export interface RiotComponentExports {
   ) => void;
   [key: string]: unknown;
 }
+/**
+ * The component instance object returned by mounting a Riot template.
+ * Riot calls `update()` and `unmount()` on this object to drive the lifecycle.
+ */
+export interface RiotInstance {
+  /** Schedules an incremental re-render with an optional partial state merge. */
+  update(state?: Record<string, unknown>): void;
+  /** Unmounts the component and frees all associated resources. */
+  unmount(keepRootElement?: boolean): void;
+}
 
 /**
  * The compiled component wrapper object that `riot.register()` and

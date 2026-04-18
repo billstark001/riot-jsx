@@ -21,6 +21,17 @@
     <preact-counter />
   </div>
 
+  <script>
+    import PreactCounter from '../connectors/PreactCounter.connector';
+    export default {
+      // No special logic needed here — the PreactCounterWrapper will interact
+      // with the Redux store on its own.
+      components: {
+        PreactCounter,
+      },
+    };
+  </script>
+
   <style>
     .riot-panel {
       border: 2px solid #0284c7;
