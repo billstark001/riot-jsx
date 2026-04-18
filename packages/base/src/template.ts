@@ -50,21 +50,13 @@ export function makeTemplateFactory<
       },
 
       mount(element: HTMLElement, scope: RiotScope): RiotComponentTemplate {
-        _root = renderer.mount(
-          element,
-          Component as ComponentType,
-          resolveProps(scope),
-        );
+        _root = renderer.mount(element, Component, resolveProps(scope));
         return template;
       },
 
       update(scope: RiotScope): RiotComponentTemplate {
         if (_root !== null) {
-          renderer.update(
-            _root,
-            Component as ComponentType,
-            resolveProps(scope),
-          );
+          renderer.update(_root, Component, resolveProps(scope));
         }
         return template;
       },
@@ -79,11 +71,7 @@ export function makeTemplateFactory<
 
       clone(): RiotComponentTemplate {
         // Return a fully independent instance — MUST NOT share _root.
-        return makeTemplateFactory(
-          renderer,
-          Component as ComponentType<Props>,
-          resolveProps,
-        )();
+        return makeTemplateFactory(renderer, Component, resolveProps)();
       },
     };
 

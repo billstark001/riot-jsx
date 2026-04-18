@@ -1,7 +1,12 @@
 {
   "name": "@riot-jsx/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React 18 and React 17 renderer adapters and RiotMount component for riot-jsx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/billstark001/riot-jsx.git",
+    "directory": "packages/react"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

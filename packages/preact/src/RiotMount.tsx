@@ -5,6 +5,8 @@ import * as riotRuntime from 'riot';
 import type { RiotComponentWrapper, RiotInstance } from '@riot-jsx/base';
 import { updateRiotInstance } from '@riot-jsx/base';
 
+const EMPTY_RIOT_PROPS = Object.freeze({}) as Record<string, unknown>;
+
 interface RiotModule {
   component(
     wrapper: RiotComponentWrapper,
@@ -23,8 +25,8 @@ export interface RiotMountProps {
   component: RiotComponentWrapper;
   /**
    * Props to forward into the Riot component.
-   * The object is shallow-compared on every Preact render; pass a stable
-   * reference (e.g. from `useMemo`) to avoid unnecessary Riot re-renders.
+  * Updates are driven by reference equality; pass a stable object
+  * (for example via `useMemo`) to avoid unnecessary Riot updates.
    */
   riotProps?: Record<string, unknown>;
   /**
@@ -43,7 +45,7 @@ export interface RiotMountProps {
  * components inside a modern Preact application.  The Riot component is:
  *
  * - **Mounted** once, when this Preact component first appears in the DOM.
- * - **Updated** via `instance.update(riotProps)` whenever `riotProps` changes.
+ * - **Updated** in place whenever the `riotProps` reference changes.
  * - **Unmounted** cleanly when this Preact component is removed from the tree.
  *
  * ### Peer dependencies
@@ -65,21 +67,24 @@ export interface RiotMountProps {
  */
 export function RiotMount({
   component,
-  riotProps = {},
+  riotProps,
   containerTag = 'div',
   class: className,
 }: RiotMountProps): JSX.Element {
   const containerRef = useRef<HTMLElement | null>(null);
   const instanceRef = useRef<RiotInstance | null>(null);
+  const lastAppliedPropsRef = useRef<Record<string, unknown>>(EMPTY_RIOT_PROPS);
+  const stableRiotProps = riotProps ?? EMPTY_RIOT_PROPS;
 
-  // Mount once — lifecycle tied to this Preact component
+  // Mount once per wrapper instance — lifecycle tied to this Preact component.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const riot = riotRuntime as unknown as RiotModule;
     const mountFn = riot.component(component);
-    instanceRef.current = mountFn(container, riotProps);
+    instanceRef.current = mountFn(container, stableRiotProps);
+    lastAppliedPropsRef.current = stableRiotProps;
 
     return () => {
       if (instanceRef.current) {
@@ -88,17 +93,18 @@ export function RiotMount({
         instanceRef.current.unmount(true);
         instanceRef.current = null;
       }
+      lastAppliedPropsRef.current = EMPTY_RIOT_PROPS;
     };
-    // Intentionally empty deps: mount/unmount only on attach/detach
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [component]);
 
-  // Propagate riotProps on every Preact re-render
+  // Only sync Riot props when the caller provides a new props object.
   useEffect(() => {
-    if (instanceRef.current) {
-      updateRiotInstance(instanceRef.current, riotProps, true);
-    }
-  });
+    if (!instanceRef.current) return;
+    if (lastAppliedPropsRef.current === stableRiotProps) return;
+
+    updateRiotInstance(instanceRef.current, stableRiotProps, true);
+    lastAppliedPropsRef.current = stableRiotProps;
+  }, [stableRiotProps]);
 
   // Use h() directly to avoid the over-broad JSX union type on dynamic tags
   return h(containerTag, {

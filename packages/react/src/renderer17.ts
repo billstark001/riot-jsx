@@ -26,21 +26,21 @@ import type { RendererAdapter, ComponentType } from '@riot-jsx/base';
  */
 export function createReact17Renderer(): RendererAdapter<HTMLElement> {
   return {
-    mount(
+    mount<Props extends Record<string, unknown>>(
       container: HTMLElement,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): HTMLElement {
-      legacyRender(createElement(Component as React.FC, props), container);
+      legacyRender(createElement(Component as React.FC<Props>, props), container);
       return container;
     },
 
-    update(
+    update<Props extends Record<string, unknown>>(
       root: HTMLElement,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): void {
-      legacyRender(createElement(Component as React.FC, props), root);
+      legacyRender(createElement(Component as React.FC<Props>, props), root);
     },
 
     unmount(root: HTMLElement): void {

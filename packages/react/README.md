@@ -67,7 +67,7 @@ Returns a `RendererAdapter` backed by the legacy `ReactDOM.render()`. Use this f
 | `containerTag` | `string` | `"div"` | Tag name for the container element |
 | `className` | `string` | — | CSS class on the container element |
 
-Stabilise `riotProps` with `useMemo` to avoid redundant Riot re-renders.
+`RiotMount` only syncs Riot when the `riotProps` reference changes. Stabilise it with `useMemo` to avoid redundant updates.
 
 ## Peer dependencies
 

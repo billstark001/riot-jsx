@@ -5,6 +5,10 @@ import { spawnSync } from 'node:child_process';
 const REGISTRY = 'https://registry.npmjs.org';
 const SCOPE = 'riot-jsx';
 const PACKAGES = ['@riot-jsx/base', '@riot-jsx/redux', '@riot-jsx/preact', '@riot-jsx/react'];
+const USE_GITHUB_TRUSTED_PUBLISHING =
+  process.env.GITHUB_ACTIONS === 'true' &&
+  !process.env.NODE_AUTH_TOKEN &&
+  !process.env.NPM_TOKEN;
 
 function run(command, args, options = {}) {
   const result = spawnSync(command, args, {
@@ -29,6 +33,10 @@ function fail(message, detail = '') {
 }
 
 function checkNpmLogin() {
+  if (USE_GITHUB_TRUSTED_PUBLISHING) {
+    return;
+  }
+
   const whoami = run('npm', ['whoami', '--registry', REGISTRY]);
   if (whoami.status !== 0) {
     fail('npm login check failed. Please run `npm login` first.', whoami.stderr || whoami.stdout);
@@ -36,6 +44,10 @@ function checkNpmLogin() {
 }
 
 function checkScopeAccess() {
+  if (USE_GITHUB_TRUSTED_PUBLISHING) {
+    return;
+  }
+
   const scopeAccess = run('npm', [
     'access',
     'list',
@@ -71,18 +83,24 @@ function publishPackages() {
   for (const pkg of PACKAGES) {
     console.log(`\n[publish-all] publishing ${pkg} ...`);
 
+    const args = [
+      '--filter',
+      pkg,
+      'publish',
+      '--access',
+      'public',
+      '--no-git-checks',
+      '--registry',
+      REGISTRY,
+    ];
+
+    if (USE_GITHUB_TRUSTED_PUBLISHING) {
+      args.push('--provenance');
+    }
+
     const result = run(
       'pnpm',
-      [
-        '--filter',
-        pkg,
-        'publish',
-        '--access',
-        'public',
-        '--no-git-checks',
-        '--registry',
-        REGISTRY,
-      ],
+      args,
       { stdio: 'inherit' }
     );
 
@@ -90,6 +108,10 @@ function publishPackages() {
       process.exit(result.status);
     }
   }
+}
+
+if (USE_GITHUB_TRUSTED_PUBLISHING) {
+  console.log('[publish-all] GitHub Actions trusted publishing detected; skipping npm login/access preflight checks.');
 }
 
 checkNpmLogin();

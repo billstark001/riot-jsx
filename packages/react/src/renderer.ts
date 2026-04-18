@@ -34,22 +34,22 @@ interface ReactRoot {
  */
 export function createReact18Renderer(): RendererAdapter<ReactRoot> {
   return {
-    mount(
+    mount<Props extends Record<string, unknown>>(
       container: HTMLElement,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): ReactRoot {
       const root = createRoot(container);
-      root.render(createElement(Component as React.FC, props));
+      root.render(createElement(Component as React.FC<Props>, props));
       return root;
     },
 
-    update(
+    update<Props extends Record<string, unknown>>(
       root: ReactRoot,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): void {
-      root.render(createElement(Component as React.FC, props));
+      root.render(createElement(Component as React.FC<Props>, props));
     },
 
     unmount(root: ReactRoot): void {

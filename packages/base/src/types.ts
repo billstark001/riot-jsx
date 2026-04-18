@@ -153,19 +153,27 @@ export type ComponentType<P extends Record<string, unknown> = Record<string, unk
  * - For Preact this is the container `HTMLElement` itself.
  * - For React 18 this is the `ReactRoot` object from `createRoot()`.
  * - For React 16/17 this is the container `HTMLElement`.
+ *
+ * Each `mount()` / `update()` call infers its own props shape from the JSX
+ * component passed in, so a single renderer instance can safely drive multiple
+ * components with different prop types.
  */
 export interface RendererAdapter<Root = unknown> {
   /**
    * Render `Component` with `props` into `container`.
    * @returns An opaque root handle for subsequent update/unmount calls.
    */
-  mount(
+  mount<Props extends Record<string, unknown>>(
     container: HTMLElement,
-    Component: ComponentType,
-    props: Record<string, unknown>,
+    Component: ComponentType<Props>,
+    props: Props,
   ): Root;
   /** Re-render with new props (diff/patch only what changed). */
-  update(root: Root, Component: ComponentType, props: Record<string, unknown>): void;
+  update<Props extends Record<string, unknown>>(
+    root: Root,
+    Component: ComponentType<Props>,
+    props: Props,
+  ): void;
   /** Tear down the component tree and free all associated resources. */
   unmount(root: Root): void;
 }

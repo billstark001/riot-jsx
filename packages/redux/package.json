@@ -1,7 +1,12 @@
 {
   "name": "@riot-jsx/redux",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Redux store connector for riot-jsx — subscribe, mapState, mapDispatch",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/billstark001/riot-jsx.git",
+    "directory": "packages/redux"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",

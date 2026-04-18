@@ -2,6 +2,10 @@
   "name": "riot-jsx",
   "private": true,
   "description": "Monorepo for riot-jsx: bridge Riot.js components with JSX renderers (Preact/React) and Redux",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/billstark001/riot-jsx.git"
+  },
   "scripts": {
     "build": "pnpm -r --filter='!example' build",
     "test": "pnpm -r --filter='!example' test",

@@ -28,19 +28,19 @@ import type { RendererAdapter, ComponentType } from '@riot-jsx/base';
  */
 export function createPreactRenderer(): RendererAdapter<HTMLElement> {
   return {
-    mount(
+    mount<Props extends Record<string, unknown>>(
       container: HTMLElement,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): HTMLElement {
       render(h(Component as Parameters<typeof h>[0], props), container);
       return container;
     },
 
-    update(
+    update<Props extends Record<string, unknown>>(
       root: HTMLElement,
-      Component: ComponentType,
-      props: Record<string, unknown>,
+      Component: ComponentType<Props>,
+      props: Props,
     ): void {
       render(h(Component as Parameters<typeof h>[0], props), root);
     },

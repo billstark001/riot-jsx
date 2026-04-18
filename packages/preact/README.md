@@ -66,7 +66,7 @@ Returns a `RendererAdapter<HTMLElement>` backed by Preact's `render()`.
 | `containerTag` | `string` | `"div"` | Tag name for the container element |
 | `class` | `string` | — | CSS class on the container element |
 
-Stabilise `riotProps` with `useMemo` to avoid redundant Riot re-renders.
+`RiotMount` only syncs Riot when the `riotProps` reference changes. Stabilise it with `useMemo` to avoid redundant updates.
 
 ## Peer dependencies
 

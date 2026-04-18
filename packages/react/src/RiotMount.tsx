@@ -4,6 +4,8 @@ import * as riotRuntime from 'riot';
 import type { RiotComponentWrapper, RiotInstance } from '@riot-jsx/base';
 import { updateRiotInstance } from '@riot-jsx/base';
 
+const EMPTY_RIOT_PROPS = Object.freeze({}) as Record<string, unknown>;
+
 // ---------------------------------------------------------------------------
 // Minimal local typings for Riot instances
 // ---------------------------------------------------------------------------
@@ -26,7 +28,8 @@ export interface RiotMountProps {
   component: RiotComponentWrapper;
   /**
    * Props to forward into the Riot component.
-   * Stabilise this object with `useMemo` to avoid redundant Riot re-renders.
+  * Updates are driven by reference equality; stabilise this object with
+  * `useMemo` to avoid redundant Riot updates.
    */
   riotProps?: Record<string, unknown>;
   /**
@@ -45,7 +48,7 @@ export interface RiotMountProps {
  * hooks.  Riot lifecycle follows this component's lifecycle:
  *
  * - **Mounted** once when this React component first appears in the DOM.
- * - **Updated** on every render where `riotProps` has changed.
+ * - **Updated** in place whenever the `riotProps` reference changes.
  * - **Unmounted** when this React component is removed from the tree.
  *
  * ### Peer dependencies
@@ -64,12 +67,14 @@ export interface RiotMountProps {
  */
 export function RiotMount({
   component,
-  riotProps = {},
+  riotProps,
   containerTag = 'div',
   className,
 }: RiotMountProps): JSX.Element {
   const containerRef = useRef<HTMLElement | null>(null);
   const instanceRef = useRef<RiotInstance | null>(null);
+  const lastAppliedPropsRef = useRef<Record<string, unknown>>(EMPTY_RIOT_PROPS);
+  const stableRiotProps = riotProps ?? EMPTY_RIOT_PROPS;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -77,22 +82,25 @@ export function RiotMount({
 
     const riot = riotRuntime as unknown as RiotModule;
     const mountFn = riot.component(component);
-    instanceRef.current = mountFn(container, riotProps);
+    instanceRef.current = mountFn(container, stableRiotProps);
+    lastAppliedPropsRef.current = stableRiotProps;
 
     return () => {
       if (instanceRef.current) {
         instanceRef.current.unmount(true);
         instanceRef.current = null;
       }
+      lastAppliedPropsRef.current = EMPTY_RIOT_PROPS;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [component]);
 
   useEffect(() => {
-    if (instanceRef.current) {
-      updateRiotInstance(instanceRef.current, riotProps, true);
-    }
-  });
+    if (!instanceRef.current) return;
+    if (lastAppliedPropsRef.current === stableRiotProps) return;
+
+    updateRiotInstance(instanceRef.current, stableRiotProps, true);
+    lastAppliedPropsRef.current = stableRiotProps;
+  }, [stableRiotProps]);
 
   return createElement(containerTag, { ref: containerRef, className });
 }

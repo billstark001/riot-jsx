@@ -1,7 +1,12 @@
 {
   "name": "@riot-jsx/preact",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Preact renderer adapter and RiotMount component for riot-jsx",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/billstark001/riot-jsx.git",
+    "directory": "packages/preact"
+  },
   "type": "module",
   "main": "./dist/index.mjs",
   "module": "./dist/index.mjs",
