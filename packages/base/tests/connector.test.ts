@@ -14,7 +14,9 @@ function makeRenderer(): RendererAdapter<HTMLElement> {
   };
 }
 
-function stubScope(props: Record<string, unknown> = {}): RiotScope {
+function stubScope<Props extends Record<string, unknown>>(
+  props: Props,
+): RiotScope<Props> {
   return { props, state: {}, update: vi.fn() };
 }
 
@@ -86,8 +88,8 @@ describe('connectRenderer', () => {
 
   it('custom propsResolver is used to transform props', () => {
     const renderer = makeRenderer();
-    const propsResolver = vi.fn((scope: RiotScope) => ({
-      value: (scope.props['x'] as number) * 3,
+    const propsResolver = vi.fn((scope: RiotScope<{ x: number }>) => ({
+      value: scope.props.x * 3,
     }));
     const wrapper = connectRenderer(() => null, {
       name: 'my-widget',

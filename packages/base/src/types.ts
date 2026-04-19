@@ -14,13 +14,16 @@
  * The scope object Riot passes to every template lifecycle method.
  * It represents the component instance (`this`) at the point of the call.
  */
-export interface RiotScope {
+export interface RiotScope<
+  Props extends object = Record<string, unknown>,
+  State extends object = Record<string, unknown>,
+> {
   /** External props received from a parent component or from `riot.component()`. */
-  readonly props: Record<string, unknown>;
+  readonly props: Props;
   /** Internal component state managed by `this.update()`. */
-  readonly state: Record<string, unknown>;
+  readonly state: State;
   /** Schedules an incremental re-render with an optional partial state merge. */
-  readonly update: (newState?: Record<string, unknown>) => void;
+  readonly update: (newState?: Partial<State>) => void;
   /** Allows lifecycle methods stored on the instance. */
   [key: string]: unknown;
 }
@@ -99,7 +102,11 @@ export interface RiotComponentExports {
  * The component instance object returned by mounting a Riot template.
  * Riot calls `update()` and `unmount()` on this object to drive the lifecycle.
  */
-export interface RiotInstance {
+export interface RiotInstance<
+  Props extends object = Record<string, unknown>,
+> {
+  /** The latest root props currently owned by the Riot instance. */
+  readonly props?: Props;
   /** Schedules an incremental re-render with an optional partial state merge. */
   update(state?: Record<string, unknown>): void;
   /** Unmounts the component and frees all associated resources. */
@@ -141,7 +148,7 @@ export interface RiotComponentWrapper {
  * components.  The `Root` type parameter is the opaque handle each renderer
  * returns from `mount()` and passes back to `update()` / `unmount()`.
  */
-export type ComponentType<P extends Record<string, unknown> = Record<string, unknown>> = (
+export type ComponentType<P extends object = Record<string, unknown>> = (
   props: P,
 ) => unknown;
 
@@ -163,13 +170,13 @@ export interface RendererAdapter<Root = unknown> {
    * Render `Component` with `props` into `container`.
    * @returns An opaque root handle for subsequent update/unmount calls.
    */
-  mount<Props extends Record<string, unknown>>(
+  mount<Props extends object>(
     container: HTMLElement,
     Component: ComponentType<Props>,
     props: Props,
   ): Root;
   /** Re-render with new props (diff/patch only what changed). */
-  update<Props extends Record<string, unknown>>(
+  update<Props extends object>(
     root: Root,
     Component: ComponentType<Props>,
     props: Props,
@@ -186,14 +193,14 @@ export interface RendererAdapter<Root = unknown> {
  * A function that derives JSX component props from the current Riot scope.
  * Called on every `mount` and `update`.
  */
-export type PropsResolver<Props extends Record<string, unknown> = Record<string, unknown>> = (
+export type PropsResolver<Props extends object = Record<string, unknown>> = (
   scope: RiotScope,
 ) => Props;
 
 /**
  * Configuration options for {@link connectRenderer}.
  */
-export interface ConnectOptions<Props extends Record<string, unknown> = Record<string, unknown>> {
+export interface ConnectOptions<Props extends object = Record<string, unknown>> {
   /**
    * Riot custom-element tag name.
    * Must contain at least one hyphen (e.g. `"my-widget"`).

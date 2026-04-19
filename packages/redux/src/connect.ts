@@ -25,10 +25,10 @@ import type {
  */
 export interface ReduxConnectOptions<
   S,
-  OwnProps extends Record<string, unknown>,
-  StateProps extends Record<string, unknown>,
-  DispatchProps extends Record<string, unknown>,
-> extends Omit<ConnectOptions, 'propsResolver'> {
+  OwnProps extends object,
+  StateProps extends object,
+  DispatchProps extends object,
+> extends Omit<ConnectOptions<OwnProps & StateProps & DispatchProps>, 'propsResolver'> {
   /**
    * Returns the Redux store instance.
    * Passing a getter (rather than the store directly) makes the connector
@@ -92,9 +92,9 @@ export interface ReduxConnectOptions<
  */
 export function connectRedux<
   S,
-  OwnProps extends Record<string, unknown> = Record<string, never>,
-  StateProps extends Record<string, unknown> = Record<string, never>,
-  DispatchProps extends Record<string, unknown> = Record<string, never>,
+  OwnProps extends object = Record<string, never>,
+  StateProps extends object = Record<string, never>,
+  DispatchProps extends object = Record<string, never>,
 >(
   // Component accepts any props at this level; TypeScript infers StateProps /
   // DispatchProps from the mapping functions and validates them at runtime.
@@ -129,7 +129,7 @@ export function connectRedux<
   // Build the base wrapper via connectRenderer
   // ------------------------------------------------------------------
   const wrapper = connectRenderer(
-    Component as ComponentType,
+    Component as ComponentType<OwnProps & StateProps & DispatchProps>,
     { ...baseOptions, propsResolver: resolveProps },
   );
 

@@ -48,6 +48,16 @@ function App() {
 }
 ```
 
+Named and default Riot slots can be filled from React children:
+
+```tsx
+<RiotMount component={LegacyPanel} riotProps={{ title: 'Quarterly review' }}>
+  <span slot="eyebrow">Named slot</span>
+  <strong slot="title">Quarterly review</strong>
+  <p>Default slot body content from React.</p>
+</RiotMount>
+```
+
 ## API
 
 ### `createReact18Renderer()`
@@ -63,11 +73,18 @@ Returns a `RendererAdapter` backed by the legacy `ReactDOM.render()`. Use this f
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `component` | `RiotComponentWrapper` | — | The Riot wrapper to mount |
-| `riotProps` | `Record<string, unknown>` | `{}` | Props forwarded to the Riot component |
+| `riotProps` | `object` | `{}` | Root props forwarded to Riot; a new top-level reference produces a fresh immutable snapshot |
 | `containerTag` | `string` | `"div"` | Tag name for the container element |
 | `className` | `string` | — | CSS class on the container element |
+| `children` | `ReactNode` | — | Optional JSX children serialized into Riot default/named slots |
 
 `RiotMount` only syncs Riot when the `riotProps` reference changes. Stabilise it with `useMemo` to avoid redundant updates.
+
+Slot boundary:
+
+- JSX children are serialized to static HTML before Riot mounts them. Event handlers, refs, and live nested React state do not cross this boundary.
+- Ordinary children feed Riot's `default` slot. Children with `slot="name"` target the corresponding named Riot slot.
+- When slot markup changes, `RiotMount` remounts the Riot component because Riot resolves slot templates only during mount.
 
 ## Peer dependencies
 

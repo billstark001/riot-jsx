@@ -1,6 +1,13 @@
 import { createElement } from 'react';
-import { render as legacyRender, unmountComponentAtNode } from 'react-dom';
+import * as ReactDOM from 'react-dom';
 import type { RendererAdapter, ComponentType } from '@riot-jsx/base';
+
+type LegacyReactDOM = typeof ReactDOM & {
+  render(element: unknown, container: HTMLElement): void;
+  unmountComponentAtNode(container: HTMLElement): void;
+};
+
+const legacyReactDOM = ReactDOM as LegacyReactDOM;
 
 // ---------------------------------------------------------------------------
 // React 16 / 17 adapter
@@ -26,25 +33,31 @@ import type { RendererAdapter, ComponentType } from '@riot-jsx/base';
  */
 export function createReact17Renderer(): RendererAdapter<HTMLElement> {
   return {
-    mount<Props extends Record<string, unknown>>(
+    mount<Props extends object>(
       container: HTMLElement,
       Component: ComponentType<Props>,
       props: Props,
     ): HTMLElement {
-      legacyRender(createElement(Component as React.FC<Props>, props), container);
+      legacyReactDOM.render(
+        createElement(Component as React.FC<Props>, props),
+        container,
+      );
       return container;
     },
 
-    update<Props extends Record<string, unknown>>(
+    update<Props extends object>(
       root: HTMLElement,
       Component: ComponentType<Props>,
       props: Props,
     ): void {
-      legacyRender(createElement(Component as React.FC<Props>, props), root);
+      legacyReactDOM.render(
+        createElement(Component as React.FC<Props>, props),
+        root,
+      );
     },
 
     unmount(root: HTMLElement): void {
-      unmountComponentAtNode(root);
+      legacyReactDOM.unmountComponentAtNode(root);
     },
   };
 }

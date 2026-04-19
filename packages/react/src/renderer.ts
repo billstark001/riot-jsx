@@ -34,7 +34,7 @@ interface ReactRoot {
  */
 export function createReact18Renderer(): RendererAdapter<ReactRoot> {
   return {
-    mount<Props extends Record<string, unknown>>(
+    mount<Props extends object>(
       container: HTMLElement,
       Component: ComponentType<Props>,
       props: Props,
@@ -44,7 +44,7 @@ export function createReact18Renderer(): RendererAdapter<ReactRoot> {
       return root;
     },
 
-    update<Props extends Record<string, unknown>>(
+    update<Props extends object>(
       root: ReactRoot,
       Component: ComponentType<Props>,
       props: Props,

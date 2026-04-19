@@ -2,7 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to Semantic Versioning.
+
+## [0.1.2] - 2026-04-19
+
+### Added
+
+- Added children-to-slot bridging for `RiotMount` in both `@riot-jsx/preact` and `@riot-jsx/react`, covering Riot's default slot and named slots via JSX `slot` props.
+- Added new demo coverage for Riot-authored default-slot markup injected into wrapped Preact components, plus named-slot composition from Preact into Riot components.
+- Added dedicated `@riot-jsx/react` API documentation and explicit guidance on the behavioral boundary between Riot slots and live JSX subtrees.
+
+### Fixed
+
+- Avoided redundant root-props snapshotting for stable top-level props objects and skipped slot work entirely when `RiotMount` is used without children.
+- Removed remaining test-side type inference friction by moving more shape information into shared generic helpers instead of repeated assertions.
+
+### Changed
+
+- Bumped `@riot-jsx/base`, `@riot-jsx/preact`, `@riot-jsx/react`, and `@riot-jsx/redux` to `0.1.2`.
+- Relaxed public props generics from `Record<string, unknown>` to ordinary object types so interface-shaped props infer cleanly without artificial index signatures.
+- Documented that slotted JSX children are serialized to static HTML and that slot markup changes remount the Riot component.
 
 ## [0.1.1] - 2026-04-18
 

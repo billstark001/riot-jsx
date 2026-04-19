@@ -155,3 +155,25 @@ Compiled output is equivalent to:
 ## 8. Server-side rendering considerations
 
 `@riot-jsx/preact` and `@riot-jsx/react` depend on browser DOM APIs to mount and update components. For SSR, move registration to client-only code (e.g. a dynamic `import()` guarded by `typeof window !== 'undefined'`) and hydrate with Preact's or React's hydration APIs.
+
+---
+
+## 9. Riot slots from JSX children
+
+`RiotMount` supports default and named Riot slots by serializing JSX children into the slot metadata that Riot expects at mount time:
+
+```tsx
+<RiotMount component={LegacyPanel} riotProps={{ title: 'Quarterly review' }}>
+  <span slot="eyebrow">Named slot</span>
+  <strong slot="title">Quarterly review</strong>
+  <p>Default slot body content from JSX.</p>
+</RiotMount>
+```
+
+Use this for layout and static content composition. It is not equivalent to rendering a live nested JSX subtree inside Riot:
+
+- Riot receives serialized HTML, not a live React or Preact child tree.
+- Event handlers, refs, and local child component state do not cross the slot boundary.
+- Updating slot markup remounts the Riot component because Riot resolves slot templates only during mount.
+
+If you need an interactive JSX island inside Riot, wrap that child with `connectRenderer()` and use it as a Riot tag instead of passing it through `RiotMount` children.

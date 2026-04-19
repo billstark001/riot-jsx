@@ -2,7 +2,7 @@ import { defineConfig } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
 
-const external = ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime', '@riot-jsx/base', 'riot'];
+const external = ['react', 'react-dom', 'react-dom/client', 'react-dom/server', 'react/jsx-runtime', '@riot-jsx/base', 'riot'];
 
 export default defineConfig([
   {

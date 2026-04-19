@@ -6,15 +6,15 @@ import type { RendererAdapter, ComponentType, RiotScope } from '../src/types.js'
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeScope(props: Record<string, unknown> = {}): RiotScope {
+function makeScope<Props extends Record<string, unknown>>(
+  props: Props,
+): RiotScope<Props> {
   return {
     props,
     state: {},
     update: vi.fn(),
   };
 }
-
-type MockRoot = HTMLElement & { _mockRoot: true };
 
 function makeRenderer() {
   // Use mutable counters captured by closures so reads and writes stay in sync
@@ -24,16 +24,24 @@ function makeRenderer() {
   let lastProps: Record<string, unknown> | null = null;
 
   const adapter = {
-    mount(container: HTMLElement, _Component: ComponentType, props: Record<string, unknown>): MockRoot {
+    mount(
+      container: HTMLElement,
+      _Component: ComponentType,
+      props: Record<string, unknown>,
+    ): HTMLElement {
       mountCount++;
       lastProps = props;
-      return container as MockRoot;
+      return container;
     },
-    update(_root: MockRoot, _Component: ComponentType, props: Record<string, unknown>): void {
+    update(
+      _root: HTMLElement,
+      _Component: ComponentType,
+      props: Record<string, unknown>,
+    ): void {
       updateCount++;
       lastProps = props;
     },
-    unmount(_root: MockRoot): void {
+    unmount(_root: HTMLElement): void {
       unmountCount++;
     },
     get mountCount() { return mountCount; },
@@ -71,7 +79,7 @@ describe('makeTemplateFactory', () => {
     const renderer = makeRenderer();
     const template = makeTemplateFactory(renderer, noop, (s) => s.props)();
     const el = document.createElement('div');
-    template.mount(el, makeScope());
+    template.mount(el, makeScope({}));
     expect(renderer.mountCount).toBe(1);
   });
 
@@ -79,7 +87,7 @@ describe('makeTemplateFactory', () => {
     const renderer = makeRenderer();
     const template = makeTemplateFactory(renderer, noop, (s) => s.props)();
     const el = document.createElement('div');
-    const ret = template.mount(el, makeScope());
+    const ret = template.mount(el, makeScope({}));
     expect(ret).toBe(template);
   });
 
@@ -87,8 +95,8 @@ describe('makeTemplateFactory', () => {
     const renderer = makeRenderer();
     const template = makeTemplateFactory(renderer, noop, (s) => s.props)();
     const el = document.createElement('div');
-    template.mount(el, makeScope());
-    template.update(makeScope());
+    template.mount(el, makeScope({}));
+    template.update(makeScope({}));
     expect(renderer.updateCount).toBe(1);
   });
 
@@ -104,11 +112,11 @@ describe('makeTemplateFactory', () => {
     const renderer = makeRenderer();
     const template = makeTemplateFactory(renderer, noop, (s) => s.props)();
     const el = document.createElement('div');
-    template.mount(el, makeScope());
-    template.unmount(makeScope());
+    template.mount(el, makeScope({}));
+    template.unmount(makeScope({}));
     expect(renderer.unmountCount).toBe(1);
     // A second unmount must be a no-op (root is already null)
-    template.unmount(makeScope());
+    template.unmount(makeScope({}));
     expect(renderer.unmountCount).toBe(1);
   });
 
@@ -120,21 +128,47 @@ describe('makeTemplateFactory', () => {
 
     const el1 = document.createElement('div');
     const el2 = document.createElement('div');
-    template.mount(el1, makeScope());
-    clone.mount(el2, makeScope());
+    template.mount(el1, makeScope({}));
+    clone.mount(el2, makeScope({}));
     // Each mount goes through the renderer independently
     expect(renderer.mountCount).toBe(2);
 
     // Unmounting one should not affect the other
-    template.unmount(makeScope());
+    template.unmount(makeScope({}));
     expect(renderer.unmountCount).toBe(1);
-    clone.update(makeScope()); // clone is still mounted
+    clone.update(makeScope({})); // clone is still mounted
+    expect(renderer.updateCount).toBe(1);
+  });
+
+  it('supports Riot createDOM().clone() flow for each-style template cloning', () => {
+    const renderer = makeRenderer();
+    const template = makeTemplateFactory(renderer, noop, (s) => s.props)();
+    const host = document.createElement('div');
+
+    expect(template.createDOM(host)).toBe(template);
+
+    const firstClone = template.clone();
+    const secondClone = template.clone();
+    const firstElement = document.createElement('div');
+    const secondElement = document.createElement('div');
+
+    firstClone.mount(firstElement, makeScope({ id: 1 }));
+    secondClone.mount(secondElement, makeScope({ id: 2 }));
+
+    expect(renderer.mountCount).toBe(2);
+
+    firstClone.unmount(makeScope({}));
+    secondClone.update(makeScope({ id: 3 }));
+
+    expect(renderer.unmountCount).toBe(1);
     expect(renderer.updateCount).toBe(1);
   });
 
   it('resolveProps is called on mount and passed to renderer', () => {
     const renderer = makeRenderer();
-    const resolveProps = vi.fn((scope: RiotScope) => ({ doubled: (scope.props['x'] as number) * 2 }));
+    const resolveProps = vi.fn((scope: RiotScope<{ x: number }>) => ({
+      doubled: scope.props.x * 2,
+    }));
     const template = makeTemplateFactory(renderer, noop, resolveProps)();
     const el = document.createElement('div');
     template.mount(el, makeScope({ x: 5 }));

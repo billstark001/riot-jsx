@@ -34,7 +34,7 @@ import { makeTemplateFactory } from './template.js';
  * });
  * ```
  */
-export function connectRenderer<Props extends Record<string, unknown>>(
+export function connectRenderer<Props extends object>(
   Component: ComponentType<Props>,
   options: ConnectOptions<Props>,
 ): RiotComponentWrapper {

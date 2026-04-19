@@ -1,18 +1,35 @@
 import { h } from 'preact';
 import { useRef, useEffect } from 'preact/hooks';
-import type { JSX, Ref } from 'preact';
+import type { ComponentChildren, JSX, Ref } from 'preact';
 import * as riotRuntime from 'riot';
 import type { RiotComponentWrapper, RiotInstance } from '@riot-jsx/base';
-import { updateRiotInstance } from '@riot-jsx/base';
+import { snapshotRiotProps, updateRiotInstance } from '@riot-jsx/base';
+import {
+  serializeRiotSlots,
+  type RiotSlotData,
+  type SerializedRiotSlots,
+} from './slots.js';
 
-const EMPTY_RIOT_PROPS = Object.freeze({}) as Record<string, unknown>;
+const EMPTY_RIOT_PROPS = Object.freeze({}) as Record<string, never>;
+const EMPTY_SLOT_PAYLOAD: SerializedRiotSlots = { signature: '[]' };
+const NO_CHILDREN = Symbol('riotmount-no-children');
+
+function hasPotentialSlotChildren(children: ComponentChildren): boolean {
+  return (
+    children !== undefined &&
+    children !== null &&
+    children !== false &&
+    children !== true
+  );
+}
 
 interface RiotModule {
   component(
     wrapper: RiotComponentWrapper,
   ): (
     element: HTMLElement,
-    props?: Record<string, unknown>,
+    props?: object,
+    meta?: { slots?: RiotSlotData[] },
   ) => RiotInstance;
 }
 
@@ -28,7 +45,7 @@ export interface RiotMountProps {
   * Updates are driven by reference equality; pass a stable object
   * (for example via `useMemo`) to avoid unnecessary Riot updates.
    */
-  riotProps?: Record<string, unknown>;
+  riotProps?: object;
   /**
    * HTML tag to use for the container element that wraps the Riot component.
    * @default "div"
@@ -36,6 +53,13 @@ export interface RiotMountProps {
   containerTag?: string;
   /** Optional CSS class name for the container element. */
   class?: string;
+  /**
+   * Optional JSX children forwarded into Riot slots.
+   * Children with a `slot` prop become named slots; all others are rendered
+   * into Riot's `default` slot. Updating slot content remounts the Riot
+   * component because Riot resolves slot templates only during mount.
+   */
+  children?: ComponentChildren;
 }
 
 /**
@@ -70,22 +94,39 @@ export function RiotMount({
   riotProps,
   containerTag = 'div',
   class: className,
+  children,
 }: RiotMountProps): JSX.Element {
   const containerRef = useRef<HTMLElement | null>(null);
   const instanceRef = useRef<RiotInstance | null>(null);
-  const lastAppliedPropsRef = useRef<Record<string, unknown>>(EMPTY_RIOT_PROPS);
+  const lastAppliedPropsRef = useRef<object>(EMPTY_RIOT_PROPS);
+  const lastMountedComponentRef = useRef<RiotComponentWrapper | null>(null);
+  const lastSerializedChildrenRef = useRef<
+    ComponentChildren | typeof NO_CHILDREN
+  >(NO_CHILDREN);
+  const lastSlotPayloadRef = useRef<SerializedRiotSlots>(EMPTY_SLOT_PAYLOAD);
+  const lastSlotSignatureRef = useRef('[]');
   const stableRiotProps = riotProps ?? EMPTY_RIOT_PROPS;
 
-  // Mount once per wrapper instance — lifecycle tied to this Preact component.
+  const getSlotPayload = () => {
+    if (!hasPotentialSlotChildren(children)) {
+      lastSerializedChildrenRef.current = NO_CHILDREN;
+      lastSlotPayloadRef.current = EMPTY_SLOT_PAYLOAD;
+      return EMPTY_SLOT_PAYLOAD;
+    }
+
+    if (lastSerializedChildrenRef.current === children) {
+      return lastSlotPayloadRef.current;
+    }
+
+    const nextSlotPayload = serializeRiotSlots(children);
+    lastSerializedChildrenRef.current = children;
+    lastSlotPayloadRef.current = nextSlotPayload.slots
+      ? nextSlotPayload
+      : EMPTY_SLOT_PAYLOAD;
+    return lastSlotPayloadRef.current;
+  };
+
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const riot = riotRuntime as unknown as RiotModule;
-    const mountFn = riot.component(component);
-    instanceRef.current = mountFn(container, stableRiotProps);
-    lastAppliedPropsRef.current = stableRiotProps;
-
     return () => {
       if (instanceRef.current) {
         // keepRootElement=true: leave the container in place so Preact does not
@@ -93,9 +134,46 @@ export function RiotMount({
         instanceRef.current.unmount(true);
         instanceRef.current = null;
       }
+
+      lastMountedComponentRef.current = null;
+      lastSerializedChildrenRef.current = NO_CHILDREN;
+      lastSlotPayloadRef.current = EMPTY_SLOT_PAYLOAD;
+      lastSlotSignatureRef.current = '[]';
       lastAppliedPropsRef.current = EMPTY_RIOT_PROPS;
     };
-  }, [component]);
+  }, []);
+
+  // Mount once per wrapper instance, and remount when the slot markup changes.
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const slotPayload = getSlotPayload();
+    const shouldRemount =
+      instanceRef.current !== null &&
+      (lastMountedComponentRef.current !== component ||
+        lastSlotSignatureRef.current !== slotPayload.signature);
+
+    if (shouldRemount) {
+      instanceRef.current?.unmount(true);
+      instanceRef.current = null;
+      lastAppliedPropsRef.current = EMPTY_RIOT_PROPS;
+    }
+
+    if (instanceRef.current !== null) {
+      return;
+    }
+
+    const riot = riotRuntime as unknown as RiotModule;
+    const mountFn = riot.component(component);
+    const initialProps = snapshotRiotProps(stableRiotProps);
+    instanceRef.current = slotPayload.slots
+      ? mountFn(container, initialProps, { slots: slotPayload.slots })
+      : mountFn(container, initialProps);
+    lastMountedComponentRef.current = component;
+    lastSlotSignatureRef.current = slotPayload.signature;
+    lastAppliedPropsRef.current = stableRiotProps;
+  }, [component, children]);
 
   // Only sync Riot props when the caller provides a new props object.
   useEffect(() => {

@@ -13,16 +13,16 @@
     "@riot-jsx/base": "workspace:*",
     "@riot-jsx/preact": "workspace:*",
     "@riot-jsx/redux": "workspace:*",
-    "preact": "^10.22.0",
-    "redux": "^5.0.0",
-    "riot": "^9.0.0"
+    "preact": "^10.29.1",
+    "redux": "^5.0.1",
+    "riot": "^10.1.3"
   },
   "devDependencies": {
-    "@preact/preset-vite": "^2.8.0",
+    "@preact/preset-vite": "^2.10.5",
     "@riotjs/compiler": "^10.0.1",
     "@types/node": "^25.6.0",
     "rollup-plugin-riot": "^10.0.0",
-    "typescript": "^5.4.0",
-    "vite": "^5.0.0"
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8"
   }
 }

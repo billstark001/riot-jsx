@@ -28,7 +28,7 @@ import type { RendererAdapter, ComponentType } from '@riot-jsx/base';
  */
 export function createPreactRenderer(): RendererAdapter<HTMLElement> {
   return {
-    mount<Props extends Record<string, unknown>>(
+    mount<Props extends object>(
       container: HTMLElement,
       Component: ComponentType<Props>,
       props: Props,
@@ -37,7 +37,7 @@ export function createPreactRenderer(): RendererAdapter<HTMLElement> {
       return container;
     },
 
-    update<Props extends Record<string, unknown>>(
+    update<Props extends object>(
       root: HTMLElement,
       Component: ComponentType<Props>,
       props: Props,

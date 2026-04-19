@@ -2,7 +2,7 @@ import { defineConfig } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
 
-const external = ['preact', 'preact/hooks', '@riot-jsx/base', 'riot'];
+const external = ['preact', 'preact/hooks', 'preact-render-to-string', '@riot-jsx/base', 'riot'];
 
 export default defineConfig([
   {

@@ -1,0 +1,68 @@
+<riot-slot-card>
+  <div class="slot-card">
+    <p class="eyebrow">
+      Riot Parent <span class="badge">Riot</span>
+    </p>
+
+    <p class="description">
+      This Riot component renders a wrapped <strong>Preact component</strong>
+      and injects the Riot-authored default-slot markup below into that
+      child's <code>children</code> prop as static HTML.
+    </p>
+
+    <preact-children-card title={ props.title || 'Embedded note' }>
+      <p>Riot authored this child content and passed it into the wrapped Preact component.</p>
+      <ul>
+        <li>The parent layout belongs to Riot.</li>
+        <li>The card shell and chrome are rendered by Preact.</li>
+      </ul>
+    </preact-children-card>
+  </div>
+
+  <script>
+    import PreactChildrenCard from '../connectors/PreactChildrenCard.connector';
+
+    export default {
+      components: {
+        PreactChildrenCard,
+      },
+    };
+  </script>
+
+  <style>
+    .slot-card {
+      border: 2px solid #7c3aed;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      background: #f5f3ff;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .eyebrow {
+      font-weight: 600;
+      color: #5b21b6;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      background: #7c3aed;
+      color: #fff;
+      padding: 2px 6px;
+      border-radius: 99px;
+      letter-spacing: 0.05em;
+    }
+
+    .description {
+      color: #334155;
+      margin: 0;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+  </style>
+</riot-slot-card>

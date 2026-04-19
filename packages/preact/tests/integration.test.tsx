@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, act } from '@testing-library/preact';
+import { render, act } from '@testing-library/preact';
 import { h } from 'preact';
 import { connectRenderer } from '@riot-jsx/base';
+import type { RiotComponentWrapper, RiotInstance, RiotScope } from '@riot-jsx/base';
 import { createPreactRenderer } from '../src/renderer.js';
+import type { RiotSlotData } from '../src/slots.js';
 
 // ---------------------------------------------------------------------------
 // Helpers: minimal Riot mock
@@ -13,13 +15,41 @@ import { createPreactRenderer } from '../src/renderer.js';
  * connectRenderer + createPreactRenderer pipeline without requiring an
  * actual Riot installation in the test environment.
  */
-function createMockRiotMount(wrapper: ReturnType<typeof connectRenderer>) {
+type MockScope<Props extends Record<string, unknown>> = RiotScope<Props> & {
+  update: ReturnType<typeof vi.fn>;
+};
+
+type MockMountedRiotInstance<Props extends Record<string, unknown>> =
+  RiotInstance<Props> & {
+    props: Props;
+    update: ReturnType<typeof vi.fn>;
+    unmount: ReturnType<typeof vi.fn>;
+  };
+
+function createDummyWrapper(): RiotComponentWrapper {
+  return {
+    name: 'dummy-tag',
+    css: null,
+    exports: {},
+    template: () => ({
+      createDOM: vi.fn().mockReturnThis(),
+      mount: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      unmount: vi.fn().mockReturnThis(),
+      clone: vi.fn().mockReturnThis(),
+    }),
+  };
+}
+
+function createMockRiotMount<Props extends Record<string, unknown>>(
+  wrapper: RiotComponentWrapper,
+) {
   const template = wrapper.template();
   let mounted = false;
 
   return {
-    mount(element: HTMLElement, props: Record<string, unknown> = {}) {
-      const scope = {
+    mount(element: HTMLElement, props: Props) {
+      const scope: MockScope<Props> = {
         props,
         state: {},
         update: vi.fn((newState?: Record<string, unknown>) => {
@@ -31,11 +61,11 @@ function createMockRiotMount(wrapper: ReturnType<typeof connectRenderer>) {
       mounted = true;
       return scope;
     },
-    update(scope: ReturnType<ReturnType<typeof createMockRiotMount>['mount']>, props: Record<string, unknown>) {
+    update(scope: MockScope<Props>, props: Props) {
       Object.assign(scope.props, props);
       template.update(scope);
     },
-    unmount(scope: ReturnType<ReturnType<typeof createMockRiotMount>['mount']>) {
+    unmount(scope: MockScope<Props>) {
       template.unmount(scope);
       mounted = false;
     },
@@ -85,8 +115,8 @@ describe('connectRenderer + createPreactRenderer (integration)', () => {
       renderer: createPreactRenderer(),
     });
 
-    const riotLike = createMockRiotMount(wrapper);
-    let scope!: ReturnType<ReturnType<typeof createMockRiotMount>['mount']>;
+    const riotLike = createMockRiotMount<{ points: number }>(wrapper);
+    let scope!: MockScope<{ points: number }>;
     act(() => { scope = riotLike.mount(container, { points: 0 }); });
 
     expect(container.textContent).toContain('Points: 0');
@@ -105,8 +135,8 @@ describe('connectRenderer + createPreactRenderer (integration)', () => {
       renderer: createPreactRenderer(),
     });
 
-    const riotLike = createMockRiotMount(wrapper);
-    let scope!: ReturnType<ReturnType<typeof createMockRiotMount>['mount']>;
+    const riotLike = createMockRiotMount<Record<string, never>>(wrapper);
+    let scope!: MockScope<Record<string, never>>;
     act(() => { scope = riotLike.mount(container, {}); });
 
     expect(container.querySelector('[data-testid="marker"]')).not.toBeNull();
@@ -123,10 +153,12 @@ describe('connectRenderer + createPreactRenderer (integration)', () => {
     const wrapper = connectRenderer(Double, {
       name: 'test-double',
       renderer: createPreactRenderer(),
-      propsResolver: (scope) => ({ value: (scope.props['n'] as number) * 2 }),
+      propsResolver: (scope: RiotScope<{ n: number }>) => ({
+        value: scope.props.n * 2,
+      }),
     });
 
-    const riotLike = createMockRiotMount(wrapper);
+    const riotLike = createMockRiotMount<{ n: number }>(wrapper);
     act(() => { riotLike.mount(container, { n: 7 }); });
 
     expect(container.querySelector('[data-testid="result"]')?.textContent).toBe('14');
@@ -143,19 +175,7 @@ describe('RiotMount component', () => {
   it('renders a container element', async () => {
     // Dynamically import with riot mocked (see RiotMount.test.tsx for full coverage)
     const { RiotMount } = await import('../src/RiotMount.js');
-
-    const dummyWrapper: ReturnType<typeof connectRenderer> = {
-      name: 'dummy-tag',
-      css: null,
-      exports: {},
-      template: () => ({
-        createDOM: vi.fn().mockReturnThis(),
-        mount: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        unmount: vi.fn().mockReturnThis(),
-        clone: vi.fn().mockReturnThis(),
-      }),
-    };
+    const dummyWrapper = createDummyWrapper();
 
     // Without riot installed the component should still render the container
     const { container } = render(h(RiotMount, { component: dummyWrapper }));
@@ -165,7 +185,7 @@ describe('RiotMount component', () => {
   it('does not update the mounted Riot instance when parent rerenders without riotProps', async () => {
     vi.resetModules();
 
-    const instance = {
+    const instance: MockMountedRiotInstance<Record<string, unknown>> = {
       props: {},
       update: vi.fn(),
       unmount: vi.fn(),
@@ -180,19 +200,7 @@ describe('RiotMount component', () => {
     }));
 
     const { RiotMount } = await import('../src/RiotMount.js');
-
-    const dummyWrapper: ReturnType<typeof connectRenderer> = {
-      name: 'dummy-tag',
-      css: null,
-      exports: {},
-      template: () => ({
-        createDOM: vi.fn().mockReturnThis(),
-        mount: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        unmount: vi.fn().mockReturnThis(),
-        clone: vi.fn().mockReturnThis(),
-      }),
-    };
+    const dummyWrapper = createDummyWrapper();
 
     function Host({ tick }: { tick: number }) {
       return h('div', null, h('span', null, String(tick)), h(RiotMount, { component: dummyWrapper }));
@@ -222,14 +230,18 @@ describe('RiotMount component', () => {
   it('updates the mounted Riot instance only when riotProps identity changes', async () => {
     vi.resetModules();
 
-    const initialProps = { seconds: 10 };
-    const nextProps = { seconds: 20 };
-    const instance = {
+    interface TimerProps {
+      seconds: number;
+    }
+
+    const initialProps: TimerProps = { seconds: 10 };
+    const nextProps: TimerProps = { seconds: 20 };
+    const instance: MockMountedRiotInstance<TimerProps> = {
       props: initialProps,
       update: vi.fn(),
       unmount: vi.fn(),
     };
-    const mountFn = vi.fn((_element: HTMLElement, props: Record<string, unknown> = {}) => {
+    const mountFn = vi.fn((_element: HTMLElement, props: TimerProps) => {
       instance.props = props;
       return instance;
     });
@@ -239,19 +251,7 @@ describe('RiotMount component', () => {
     }));
 
     const { RiotMount } = await import('../src/RiotMount.js');
-
-    const dummyWrapper: ReturnType<typeof connectRenderer> = {
-      name: 'dummy-tag',
-      css: null,
-      exports: {},
-      template: () => ({
-        createDOM: vi.fn().mockReturnThis(),
-        mount: vi.fn().mockReturnThis(),
-        update: vi.fn().mockReturnThis(),
-        unmount: vi.fn().mockReturnThis(),
-        clone: vi.fn().mockReturnThis(),
-      }),
-    };
+    const dummyWrapper = createDummyWrapper();
 
     let rerender!: ReturnType<typeof render>['rerender'];
     await act(async () => {
@@ -271,8 +271,150 @@ describe('RiotMount component', () => {
       rerender(h(RiotMount, { component: dummyWrapper, riotProps: nextProps }));
     });
 
-    expect(instance.props).toBe(nextProps);
+    expect(instance.props).toEqual(nextProps);
+    expect(instance.props).not.toBe(nextProps);
     expect(instance.update).toHaveBeenCalledTimes(1);
+    vi.doUnmock('riot');
+    vi.resetModules();
+  });
+
+  it('snapshots riotProps before mount and update', async () => {
+    vi.resetModules();
+
+    interface TotalsProps {
+      total: number;
+      nested: { value: number };
+    }
+
+    const sourceProps: TotalsProps = { total: 1, nested: { value: 1 } };
+    const nextProps: TotalsProps = { total: 2, nested: { value: 2 } };
+    const instance: MockMountedRiotInstance<TotalsProps> = {
+      props: {},
+      update: vi.fn(),
+      unmount: vi.fn(),
+    };
+    const mountFn = vi.fn((_element: HTMLElement, props: TotalsProps) => {
+      instance.props = props;
+      return instance;
+    });
+
+    vi.doMock('riot', () => ({
+      component: vi.fn(() => mountFn),
+    }));
+
+    const { RiotMount } = await import('../src/RiotMount.js');
+    const dummyWrapper = createDummyWrapper();
+
+    let rerender!: ReturnType<typeof render>['rerender'];
+    await act(async () => {
+      ({ rerender } = render(h(RiotMount, { component: dummyWrapper, riotProps: sourceProps })));
+    });
+
+    expect(instance.props).toEqual({ total: 1, nested: { value: 1 } });
+    expect(instance.props).not.toBe(sourceProps);
+    expect(Object.isFrozen(instance.props)).toBe(true);
+    expect(Object.isFrozen(instance.props.nested)).toBe(true);
+
+    sourceProps.total = 10;
+    sourceProps.nested.value = 10;
+
+    expect(instance.props).toEqual({ total: 1, nested: { value: 1 } });
+
+    await act(async () => {
+      rerender(h(RiotMount, { component: dummyWrapper, riotProps: nextProps }));
+    });
+
+    expect(instance.props).toEqual({ total: 2, nested: { value: 2 } });
+    expect(instance.props).not.toBe(nextProps);
+
+    nextProps.total = 20;
+    nextProps.nested.value = 20;
+
+    expect(instance.props).toEqual({ total: 2, nested: { value: 2 } });
+    expect(instance.update).toHaveBeenCalledTimes(1);
+    vi.doUnmock('riot');
+    vi.resetModules();
+  });
+
+  it('passes children as Riot slots and remounts when slot markup changes', async () => {
+    vi.resetModules();
+
+    const instances: Array<MockMountedRiotInstance<Record<string, unknown>>> = [];
+    const metas: Array<{ slots?: RiotSlotData[] } | undefined> = [];
+    const mountFn = vi.fn(
+      (
+        _element: HTMLElement,
+        props: Record<string, unknown> = {},
+        meta?: { slots?: RiotSlotData[] },
+      ) => {
+        const instance: MockMountedRiotInstance<Record<string, unknown>> = {
+          props,
+          update: vi.fn(),
+          unmount: vi.fn(),
+        };
+
+        instances.push(instance);
+        metas.push(meta);
+        return instance;
+      },
+    );
+
+    vi.doMock('riot', () => ({
+      component: vi.fn(() => mountFn),
+    }));
+
+    const { RiotMount } = await import('../src/RiotMount.js');
+    const dummyWrapper = createDummyWrapper();
+
+    let rerender!: ReturnType<typeof render>['rerender'];
+    await act(async () => {
+      ({ rerender } = render(
+        h(
+          RiotMount,
+          { component: dummyWrapper },
+          h('span', null, 'Body'),
+          h('strong', { slot: 'title' }, 'Title'),
+        ),
+      ));
+    });
+
+    expect(mountFn).toHaveBeenCalledTimes(1);
+    expect(metas[0]?.slots).toEqual([
+      { id: 'default', html: '<span>Body</span>', bindings: [] },
+      { id: 'title', html: '<strong>Title</strong>', bindings: [] },
+    ]);
+
+    await act(async () => {
+      rerender(
+        h(
+          RiotMount,
+          { component: dummyWrapper },
+          h('span', null, 'Body'),
+          h('strong', { slot: 'title' }, 'Title'),
+        ),
+      );
+    });
+
+    expect(mountFn).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      rerender(
+        h(
+          RiotMount,
+          { component: dummyWrapper },
+          h('span', null, 'Updated'),
+          h('strong', { slot: 'title' }, 'Title'),
+        ),
+      );
+    });
+
+    expect(mountFn).toHaveBeenCalledTimes(2);
+    expect(instances[0].unmount).toHaveBeenCalledWith(true);
+    expect(instances[0].update).not.toHaveBeenCalled();
+    expect(metas[1]?.slots).toEqual([
+      { id: 'default', html: '<span>Updated</span>', bindings: [] },
+      { id: 'title', html: '<strong>Title</strong>', bindings: [] },
+    ]);
     vi.doUnmock('riot');
     vi.resetModules();
   });

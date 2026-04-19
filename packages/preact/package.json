@@ -1,6 +1,6 @@
 {
   "name": "@riot-jsx/preact",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Preact renderer adapter and RiotMount component for riot-jsx",
   "repository": {
     "type": "git",
@@ -17,7 +17,9 @@
       "types": "./dist/index.d.ts"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rollup -c rollup.config.ts --configPlugin @rollup/plugin-typescript",
     "test": "vitest",
@@ -26,24 +28,25 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@riot-jsx/base": "workspace:*"
+    "@riot-jsx/base": "workspace:*",
+    "preact-render-to-string": "^6.6.7"
   },
   "peerDependencies": {
     "preact": ">=10.0.0",
     "riot": ">=4.0.0"
   },
   "devDependencies": {
-    "@preact/signals": "^1.3.0",
+    "@preact/signals": "^2.9.0",
     "@riot-jsx/base": "workspace:*",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@testing-library/preact": "^3.2.0",
-    "jsdom": "^24.0.0",
-    "preact": "^10.22.0",
-    "riot": "^9.0.0",
-    "rollup": "^4.0.0",
-    "rollup-plugin-dts": "^6.0.0",
-    "typescript": "^5.4.0",
-    "vitest": "^2.0.0"
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@testing-library/preact": "^3.2.4",
+    "jsdom": "^29.0.2",
+    "preact": "^10.29.1",
+    "riot": "^10.1.3",
+    "rollup": "^4.60.2",
+    "rollup-plugin-dts": "^6.4.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4"
   }
 }

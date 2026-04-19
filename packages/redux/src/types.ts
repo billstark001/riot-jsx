@@ -48,8 +48,8 @@ export interface ReduxStore<S = unknown> {
  */
 export type MapStateToProps<
   S,
-  OwnProps extends Record<string, unknown>,
-  StateProps extends Record<string, unknown>,
+  OwnProps extends object,
+  StateProps extends object,
 > = (state: S, ownProps: OwnProps) => StateProps;
 
 /**
@@ -60,6 +60,6 @@ export type MapStateToProps<
  * @template DispatchProps - Props (callbacks) this function produces
  */
 export type MapDispatchToProps<
-  OwnProps extends Record<string, unknown>,
-  DispatchProps extends Record<string, unknown>,
+  OwnProps extends object,
+  DispatchProps extends object,
 > = (dispatch: ReduxDispatch, ownProps: OwnProps) => DispatchProps;

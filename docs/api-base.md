@@ -7,7 +7,7 @@ Core connector factory, shared types, and CSS scoping utilities.
 Wraps a JSX function component as a standard Riot `RiotComponentWrapper` — the same shape produced by the Riot compiler from a `.riot` source file.
 
 ```ts
-function connectRenderer<Props extends Record<string, unknown>>(
+function connectRenderer<Props extends object>(
   Component: ComponentType<Props>,
   options: ConnectOptions<Props>,
 ): RiotComponentWrapper
@@ -28,7 +28,7 @@ function connectRenderer<Props extends Record<string, unknown>>(
 type PropsResolver<Props> = (scope: RiotScope) => Props;
 ```
 
-When omitted, the default resolver passes `scope.props` directly as JSX props, merging `scope.state` for extra fields. Supply a custom resolver to reshape or filter the incoming data.
+When omitted, the default resolver passes `scope.props` directly as JSX props. Supply a custom resolver to reshape or filter the incoming data.
 
 ```ts
 connectRenderer(MyWidget, {
@@ -75,6 +75,18 @@ You rarely need to call this directly — `connectRenderer` applies it automatic
 
 ---
 
+## `snapshotRiotProps(props)`
+
+Creates the immutable root-props snapshot used by `RiotMount`.
+
+```ts
+function snapshotRiotProps<Props extends object>(props: Props): Props;
+```
+
+Plain objects and arrays are cloned recursively so later external mutation cannot leak into a mounted Riot instance. Opaque references such as functions, class instances, DOM nodes, maps, sets, and dates are preserved by reference.
+
+---
+
 ## Types
 
 ### `RiotScope`
@@ -102,6 +114,6 @@ interface RiotComponentWrapper {
 ### `ComponentType<Props>`
 
 ```ts
-type ComponentType<Props = Record<string, unknown>> =
+type ComponentType<Props extends object = Record<string, unknown>> =
   (props: Props) => unknown;
 ```

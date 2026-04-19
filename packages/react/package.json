@@ -1,6 +1,6 @@
 {
   "name": "@riot-jsx/react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React 18 and React 17 renderer adapters and RiotMount component for riot-jsx",
   "repository": {
     "type": "git",
@@ -37,19 +37,19 @@
   },
   "devDependencies": {
     "@riot-jsx/base": "workspace:*",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@testing-library/dom": "^10.0.0",
-    "@testing-library/react": "^16.0.0",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "jsdom": "^24.0.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0",
-    "riot": "^9.0.0",
-    "rollup": "^4.0.0",
-    "rollup-plugin-dts": "^6.0.0",
-    "typescript": "^5.4.0",
-    "vitest": "^2.0.0"
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.0.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "riot": "^10.1.3",
+    "rollup": "^4.60.2",
+    "rollup-plugin-dts": "^6.4.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.4"
   }
 }

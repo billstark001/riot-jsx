@@ -78,6 +78,24 @@ function Dashboard() {
 
 Riot is mounted once when the Preact component appears, updated when `riotProps` changes, and cleanly unmounted when the Preact component is removed.
 
+## Passing children into Riot slots
+
+`RiotMount` can feed JSX children into Riot's default slot and named slots:
+
+```tsx
+<RiotMount component={LegacyPanel} riotProps={{ title: 'Quarterly review' }}>
+  <span slot="eyebrow">Named slot</span>
+  <strong slot="title">Quarterly review</strong>
+  <p>Default slot body content from JSX.</p>
+</RiotMount>
+```
+
+Boundary notes:
+
+- Ordinary children feed Riot's `default` slot. Children with `slot="name"` target named Riot slots.
+- Children are serialized to static HTML before Riot mounts them. Event handlers, refs, and live nested React or Preact state do not cross this boundary.
+- When slot markup changes, `RiotMount` remounts the Riot component because Riot resolves slot templates only during mount.
+
 ## TypeScript
 
 All packages ship `.d.ts` files. The generic parameters of `connectRenderer` and `connectRedux` are inferred from the component props automatically.
@@ -97,5 +115,6 @@ All packages ship `.d.ts` files. The generic parameters of `connectRenderer` and
 
 - [API Reference — @riot-jsx/base](./api-base.md)
 - [API Reference — @riot-jsx/preact](./api-preact.md)
+- [API Reference — @riot-jsx/react](./api-react.md)
 - [API Reference — @riot-jsx/redux](./api-redux.md)
 - [Advanced Patterns](./advanced.md)

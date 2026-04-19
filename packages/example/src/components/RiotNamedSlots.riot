@@ -1,0 +1,60 @@
+<riot-named-slots>
+  <article class="named-slots">
+    <div class="header">
+      <p class="eyebrow"><slot name="eyebrow">Named slot</slot></p>
+      <h3 class="title"><slot name="title">Untitled</slot></h3>
+    </div>
+
+    <div class="body">
+      <slot />
+    </div>
+
+    <p class="hint">
+      Named slots are resolved by Riot at mount time using the serialized slot metadata.
+    </p>
+  </article>
+
+  <style>
+    .named-slots {
+      border: 2px solid #be123c;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      background: #fff1f2;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: #9f1239;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .title {
+      margin: 0;
+      color: #881337;
+      font-size: 1.15rem;
+    }
+
+    .body {
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .hint {
+      margin: 0;
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+  </style>
+</riot-named-slots>

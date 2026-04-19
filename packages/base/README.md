@@ -2,6 +2,8 @@
 
 Core connector API for `riot-jsx`. Provides the `connectRenderer()` function that wraps any JSX function component as a standard Riot component wrapper, plus CSS scoping utilities and shared TypeScript types.
 
+All public props generics accept ordinary object interfaces. You do not need to add artificial `[key: string]: unknown` index signatures to component props just to satisfy the bridge types.
+
 ## Install
 
 ```bash
@@ -38,6 +40,10 @@ import MyWidgetWrapper from './my-widget.connector.ts';
 
 riot.register('my-widget', MyWidgetWrapper);
 ```
+
+### `snapshotRiotProps(props)`
+
+Creates the same immutable root-props snapshot used internally by `RiotMount`. Plain objects and arrays are cloned recursively, while opaque references such as functions, dates, DOM nodes, maps, and sets are preserved by reference.
 
 ### CSS scoping
 

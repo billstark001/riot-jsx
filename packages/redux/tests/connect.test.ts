@@ -177,8 +177,10 @@ describe('connectRedux', () => {
     const scope = makeScope();
     template.mount(el, scope);
 
-    const mountProps = (renderer.mount as ReturnType<typeof vi.fn>).mock.calls[0][2] as Record<string, unknown>;
-    expect(typeof mountProps['increment']).toBe('function');
+    const mountProps = vi.mocked(renderer.mount).mock.calls[0]?.[2];
+    expect(mountProps).toEqual(
+      expect.objectContaining({ increment: expect.any(Function) }),
+    );
   });
 
   it('prop priority: dispatchProps > stateProps > ownProps', () => {
@@ -189,9 +191,9 @@ describe('connectRedux', () => {
       name: 'my-counter',
       renderer,
       getStore: () => store,
-      mapStateToProps: (_state: CounterState, ownProps) => ({
+      mapStateToProps: (_state: CounterState, ownProps: { base: number }) => ({
         label: 'from-state',
-        base: (ownProps['base'] as number) * 2,
+        base: ownProps.base * 2,
       }),
       mapDispatchToProps: () => ({
         label: 'from-dispatch', // should win
@@ -202,9 +204,10 @@ describe('connectRedux', () => {
     const el = document.createElement('div');
     template.mount(el, makeScope({ label: 'from-own', base: 5 }));
 
-    const props = (renderer.mount as ReturnType<typeof vi.fn>).mock.calls[0][2] as Record<string, unknown>;
-    expect(props['label']).toBe('from-dispatch'); // dispatchProps wins
-    expect(props['base']).toBe(10); // stateProps wins over ownProps
+    const props = vi.mocked(renderer.mount).mock.calls[0]?.[2];
+    expect(props).toEqual(
+      expect.objectContaining({ label: 'from-dispatch', base: 10 }),
+    );
   });
 
   it('multiple instances subscribe/unsubscribe independently', () => {

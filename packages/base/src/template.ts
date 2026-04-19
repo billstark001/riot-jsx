@@ -30,7 +30,7 @@ import type {
  */
 export function makeTemplateFactory<
   Root,
-  Props extends Record<string, unknown>,
+  Props extends object,
 >(
   renderer: RendererAdapter<Root>,
   Component: ComponentType<Props>,

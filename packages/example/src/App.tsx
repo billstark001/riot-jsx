@@ -17,6 +17,14 @@
  *      RiotMount embeds RiotTimer.riot, a countdown timer written in pure Riot.
  *      The initial seconds are controlled by a Preact <input type="range">,
  *      demonstrating how Preact drives a Riot component through riotProps.
+ *
+ *   E. Preact → Riot → Preact (Riot injects children)
+ *      RiotMount embeds RiotSlotCard.riot, which renders a wrapped Preact
+ *      component and injects Riot-authored default-slot markup into its children.
+ *
+ *   F. Preact → Riot named slots
+ *      RiotMount embeds RiotNamedSlots.riot and maps `slot="..."` children
+ *      into Riot named slots.
  */
 import { RiotMount } from '@riot-jsx/preact';
 import { PreactCounter } from './components/PreactCounter.js';
@@ -26,6 +34,8 @@ import { useReducer, useEffect, useState, useMemo } from 'preact/hooks';
 
 import RiotPanelWrapper from './components/RiotPanel.riot';
 import RiotPanel2Wrapper from './components/RiotPanel2.riot';
+import RiotSlotCardWrapper from './components/RiotSlotCard.riot';
+import RiotNamedSlotsWrapper from './components/RiotNamedSlots.riot';
 import RiotTimerWrapper from './components/RiotTimer.riot';
 
 // ---------------------------------------------------------------------------
@@ -52,6 +62,13 @@ export function App() {
   // Section D: slider controls how many seconds the Riot timer starts with
   const [timerSeconds, setTimerSeconds] = useState(10);
   const timerProps = useMemo(() => ({ seconds: timerSeconds }), [timerSeconds]);
+  const [slotVariant, setSlotVariant] = useState<'draft' | 'review'>('draft');
+  const slotCardProps = useMemo(
+    () => ({
+      title: slotVariant === 'draft' ? 'Draft summary' : 'Review summary',
+    }),
+    [slotVariant],
+  );
 
   return (
     <div class="app">
@@ -124,10 +141,48 @@ export function App() {
         <RiotMount component={RiotTimerWrapper} riotProps={timerProps} />
       </section>
 
+      <section>
+        <h2>E. Preact → Riot → Preact (Riot injects children)</h2>
+        <p class="desc">
+          <code>RiotSlotCard.riot</code> renders a wrapped
+          <code>&lt;preact-children-card /&gt;</code> tag. The body content is
+          authored by Riot between the opening and closing tags and forwarded
+          into the Preact child component as static <code>children</code>
+          markup.
+        </p>
+        <div class="slider-row">
+          <button
+            type="button"
+            onClick={() => setSlotVariant((current) => current === 'draft' ? 'review' : 'draft')}
+          >
+            Toggle Riot prop title
+          </button>
+        </div>
+        <RiotMount component={RiotSlotCardWrapper} riotProps={slotCardProps} />
+      </section>
+
+      <section>
+        <h2>F. Preact → Riot (named slots)</h2>
+        <p class="desc">
+          <code>RiotNamedSlots.riot</code> consumes both named slots and a default
+          body slot. In JSX, pass a <code>slot</code> prop on children to target the
+          corresponding Riot slot by name.
+        </p>
+        <RiotMount component={RiotNamedSlotsWrapper}>
+          <span slot="eyebrow">Named slot demo</span>
+          <strong slot="title">Weekly release checklist</strong>
+          <ul>
+            <li>Named slot content is rendered as static HTML, not a live JSX subtree.</li>
+            <li>Use this for layout/content composition, not for interactive child islands.</li>
+          </ul>
+        </RiotMount>
+      </section>
+
       <footer>
         <p>
           Sections A &amp; B share Redux state — edit one, the other updates instantly.
-          Sections C &amp; D are fully independent.
+          Sections C through F are independent demos of local state, root props,
+          and Riot slot composition.
         </p>
       </footer>
     </div>
